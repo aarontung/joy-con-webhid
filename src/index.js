@@ -100,9 +100,7 @@ const connectDevice = async (device) => {
   if (device.productId === 0x2006) {
     joyCon = new JoyConLeft(device);
   } else if (device.productId === 0x2007) {
-    if (device.productName === 'Joy-Con (R)') {
-      joyCon = new JoyConRight(device);
-    }
+    joyCon = new JoyConRight(device);
   }
   if (!joyCon) {
     // console.log(device.productId.toString(16), device.productName);
