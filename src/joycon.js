@@ -30,6 +30,8 @@ class JoyCon extends EventTarget {
    */
   constructor(device) {
     super();
+    this.enableIMU = false;
+    this.imuErrorCount = 0;
     this.device = device;
     this.lastValues = {
       timestamp: null,
@@ -37,6 +39,19 @@ class JoyCon extends EventTarget {
       beta: 0,
       gamma: 0,
     };
+  }
+
+  /**
+   * Checks if the IMU data is valid.
+   *
+   * @memberof JoyCon
+   */
+
+  hasAccelData(accels) {
+    if (accels == undefined) {
+      return false;
+    }
+    return Math.abs(accels[0].x.acc) > 0.5 || Math.abs(accels[0].y.acc) > 0.5 || Math.abs(accels[0].z.acc) > 0.5;
   }
 
   /**
@@ -171,6 +186,7 @@ class JoyCon extends EventTarget {
    * @memberof JoyCon
    */
   async enableIMUMode() {
+    this.enableIMU = true;
     const outputReportID = 0x01;
     const subcommand = [0x40, 0x01];
     const data = [
@@ -194,6 +210,7 @@ class JoyCon extends EventTarget {
    * @memberof JoyCon
    */
   async disableIMUMode() {
+    this.enableIMU = false;
     const outputReportID = 0x01;
     const subcommand = [0x40, 0x00];
     const data = [
@@ -527,6 +544,19 @@ class JoyCon extends EventTarget {
       this._receiveBatteryLevel(packet.batteryLevel);
     }
     this._receiveInputEvent(packet);
+
+    if (this.enableIMU) {
+      if (!packet.accelerometers || !this.hasAccelData(packet.accelerometers)) {
+        this.imuErrorCount++;
+        if (this.imuErrorCount > 300) {
+          // reset IMU
+          this.enableIMUMode();
+        }
+      } else {
+        this.imuErrorCount = 0;
+      }
+    }
+
   }
 
   /**
