@@ -31,7 +31,7 @@ class JoyCon extends EventTarget {
   constructor(device) {
     super();
     this.enableIMU = false;
-    this.imuErrorCount = 0;
+    this.ackIMUReceived = false;
     this.device = device;
     this.lastValues = {
       timestamp: null,
@@ -53,6 +53,16 @@ class JoyCon extends EventTarget {
     }
     return Math.abs(accels[0].x.acc) > 0.5 || Math.abs(accels[0].y.acc) > 0.5 || Math.abs(accels[0].z.acc) > 0.5;
   }
+
+  /**
+   * Checks if the IMU data is enabled.
+   *
+   * @memberof JoyCon
+   */
+  isIMUEnabled() {
+    return this.ackIMUReceived;
+  }
+
 
   /**
    * Opens the device.
@@ -455,7 +465,6 @@ class JoyCon extends EventTarget {
     let packet = {
       inputReportID: PacketParser.parseInputReportID(data, hexData),
     };
-
     switch (reportId) {
       case 0x3f: {
         packet = {
@@ -466,7 +475,12 @@ class JoyCon extends EventTarget {
         };
         break;
       }
-      case 0x21:
+      case 0x21: {
+        if (PacketParser.enableIMUReport(hexData)) {
+          this.ackIMUReceived = true;
+          console.log('IMU ACK received');
+        }
+      }
       case 0x30: {
         packet = {
           ...packet,
@@ -545,18 +559,11 @@ class JoyCon extends EventTarget {
     }
     this._receiveInputEvent(packet);
 
-    if (this.enableIMU) {
-      if (!packet.accelerometers || !this.hasAccelData(packet.accelerometers)) {
-        this.imuErrorCount++;
-        if (this.imuErrorCount > 300) {
-          // reset IMU
-          this.enableIMUMode();
-        }
-      } else {
-        this.imuErrorCount = 0;
-      }
+    if (this.enableIMU && !this.ackIMUReceived) {
+      // no received IMU ack. try again
+      this.enableIMUMode();
+      console.log('requesting IMU enable again');
     }
-
   }
 
   /**
