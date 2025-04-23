@@ -59,7 +59,7 @@ const ControllerType = {
 };
 
 const bias = 0.75;
-const zeroBias = 0.0125;
+const zeroBias = 0.0;
 
 // As we only can cover half (PI rad) of the full spectrum (2*PI rad) we multiply
 // the unit vector with values from [-1, 1] with PI/2, covering [-PI/2, PI/2].
@@ -531,4 +531,8 @@ export function parseRingCon(rawData, data) {
     strain: new DataView(rawData.buffer, 39, 2).getInt16(0, true),
   };
   return ringcon;
+}
+
+export function enableIMUReport(data) {
+  return data[14] === 40
 }
