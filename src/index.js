@@ -49,7 +49,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+}
+
 const connectJoyCon = async () => {
+
+if ('hid' in navigator) {
   // Filter on devices with the Nintendo Vendor ID.
   const filters = [
     {
@@ -95,13 +99,10 @@ const connectJoyCon = async () => {
   } catch (error) {
     console.error(error.name, error.message);
   }
-};
 
-} else {
-  connectJoyCon = async () => {
-    console.error('HID API not supported');
-  };
-}
+} // hid in navigator
+
+};
 
 const connectDevice = async (device) => {
   let joyCon = null;
