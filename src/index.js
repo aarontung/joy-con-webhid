@@ -32,6 +32,8 @@ const removeDevice = async (device) => {
   connectedJoyCons.delete(id);
 };
 
+if ('hid' in navigator) {
+
 navigator.hid.addEventListener('connect', async ({ device }) => {
   addDevice(device);
 });
@@ -94,6 +96,8 @@ const connectJoyCon = async () => {
     console.error(error.name, error.message);
   }
 };
+
+}
 
 const connectDevice = async (device) => {
   let joyCon = null;
