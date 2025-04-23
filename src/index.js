@@ -97,6 +97,10 @@ const connectJoyCon = async () => {
   }
 };
 
+} else {
+  connectJoyCon = async () => {
+    console.error('HID API not supported');
+  };
 }
 
 const connectDevice = async (device) => {
